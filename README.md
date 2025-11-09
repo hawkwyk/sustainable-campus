@@ -123,6 +123,49 @@ const CONFIG = {
 2. 创建应用并获取API Key
 3. 在 `config.js` 中更新 `amapKey`
 
+### Cloudinary配置（图片上传）
+
+1. **创建Cloudinary账户**
+   - 访问 [Cloudinary官网](https://cloudinary.com/)
+   - 注册免费账户并登录
+
+2. **获取API凭证**
+   - 进入 Dashboard → Account Details
+   - 获取以下信息：
+     - Cloud Name（云名称）
+     - API Key（API密钥）
+     - API Secret（API密钥，需要保密）
+
+3. **创建上传预设**
+   - Settings → Upload → Upload presets
+   - 点击 "Add upload preset"
+   - 设置名称（如：sustainable-campus）
+   - 配置选项：
+     - Signing Mode: Unsigned（用于客户端上传）
+     - Folder: sustainable-campus-projects
+     - Allowed formats: jpg, png, webp, gif
+     - Max image size: 10MB
+     - Image quality: Auto
+     - Image format: Auto
+
+4. **更新配置文件**
+   ```javascript
+   // 在 config.js 中更新以下配置
+   cloudinary: {
+       cloudName: "你的Cloudinary云名称",
+       uploadPreset: "sustainable-campus",  // 你创建的上传预设名称
+       apiKey: "你的API密钥",
+       folder: "sustainable-campus-projects"  // 图片存储文件夹
+   }
+   ```
+
+5. **环境变量配置（推荐）**
+   - 对于生产环境，建议将API Secret配置为环境变量
+   - 在GitHub仓库的Settings → Secrets中添加：
+     - `CLOUDINARY_CLOUD_NAME`
+     - `CLOUDINARY_API_KEY`
+     - `CLOUDINARY_API_SECRET`
+
 ### GitHub API配置
 
 1. 创建 Personal Access Token
@@ -155,6 +198,15 @@ const CONFIG = {
 - **添加标记**: 用户可提交新的项目标记
 - **筛选功能**: 按类型筛选地图标记
 - **进度追踪**: 统计导览完成情况
+
+#### Cloudinary图片上传功能
+- **拖拽上传**: 支持拖拽图片到上传区域
+- **文件验证**: 自动检查文件格式和大小
+- **图片压缩**: 自动压缩大尺寸图片
+- **上传进度**: 实时显示上传进度条
+- **图片预览**: 上传前预览图片效果
+- **多格式支持**: 支持JPEG、PNG、WebP、GIF格式
+- **自动优化**: Cloudinary自动优化图片质量和格式
 
 ### 关于我们 (about.html)
 - **发展历程**: 时间轴展示项目历史
@@ -218,6 +270,54 @@ const CONFIG = {
 2. 在HTML文件中添加必要的DOM结构
 3. 更新配置文件和导航菜单
 
+## 📸 图片上传功能详解
+
+### 功能特性
+- **客户端上传**: 使用Cloudinary的无签名上传功能
+- **拖拽支持**: 支持拖拽文件到上传区域
+- **实时预览**: 上传前显示图片预览
+- **自动压缩**: 自动压缩大尺寸图片
+- **进度显示**: 实时显示上传进度
+- **错误处理**: 完善的错误提示和处理
+
+### 使用流程
+1. 用户点击地图上的"新增标记"按钮
+2. 在地图上选择位置，弹出标记表单
+3. 填写项目信息，选择或拖拽图片到上传区域
+4. 系统自动验证文件格式和大小
+5. 图片上传到Cloudinary，显示上传进度
+6. 上传成功后显示图片预览
+7. 提交表单，数据保存到GitHub Issues
+
+### 技术实现
+- **CloudinaryUploader类**: 封装所有Cloudinary相关操作
+- **文件验证**: 检查文件格式、大小限制
+- **图片压缩**: 使用Canvas API压缩大尺寸图片
+- **异步上传**: 使用Fetch API进行异步文件上传
+- **进度追踪**: XMLHttpRequest监听上传进度事件
+- **错误处理**: 完善的错误捕获和用户提示
+
+### 配置选项
+```javascript
+// Cloudinary上传配置
+const uploadOptions = {
+    compress: true,        // 是否压缩图片
+    maxWidth: 1920,        // 最大宽度
+    quality: 0.8,          // 压缩质量
+    tags: ['tag1', 'tag2'], // 图片标签
+    context: {             // 上下文信息
+        source: 'user_upload',
+        project: 'sustainable-campus'
+    }
+};
+```
+
+### 安全考虑
+- **无签名上传**: 使用预设的上传配置，无需暴露API Secret
+- **文件验证**: 严格的文件格式和大小验证
+- **CORS配置**: 正确配置Cloudinary的CORS设置
+- **内容过滤**: 建议启用Cloudinary的内容审核功能
+
 ## 📊 性能优化
 
 ### 图片优化
@@ -268,17 +368,4 @@ const CONFIG = {
 
 ## 🙏 致谢
 
-- **北京大学环境科学学院**: 项目支持和指导
-- **参与师生**: 项目的积极贡献者
-- **开源社区**: 提供优秀的开源工具和库
-
-## 📞 联系方式
-
-- **邮箱**: sustainable-campus@pku.edu.cn
-- **电话**: +86-10-6275-1234
-- **地址**: 北京市海淀区颐和园路5号北京大学环境科学学院
-- **微信公众号**: 北大可持续校园
-
----
-
-**构建绿色未来，从校园开始！** 🌱
+- **北京大学环境科

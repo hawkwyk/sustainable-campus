@@ -17,6 +17,15 @@ const CONFIG = {
         // 高德地图API密钥
         amapKey: "2af2aacfc59717f760ca56328d699e95",
         
+        // Cloudinary API配置
+        cloudinary: {
+            cloudName: "dosno3esn",  // 替换为您的Cloudinary云名称
+            uploadPreset: "sustainable-campus",  // 替换为您的上传预设
+            apiKey: "382986823196411",  // 替换为您的API密钥
+            // 注意：API Secret应该通过环境变量配置，不要直接写在代码中
+            folder: "sustainable-campus-projects"  // 图片存储文件夹
+        },
+        
         // GitHub API配置
         github: {
             username: "hawkwyk",

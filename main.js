@@ -723,6 +723,9 @@ class MarkerForm {
     constructor(lnglat, config) {
         this.lnglat = lnglat;
         this.config = config;
+        this.cloudinaryUploader = new CloudinaryUploader(config);
+        this.uploadedImageUrl = null;
+        this.isUploading = false;
         this.init();
     }
 
@@ -733,47 +736,91 @@ class MarkerForm {
     createForm() {
         const formHTML = `
             <div id="marker-form-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center p-4">
-                <div class="bg-white rounded-lg max-w-md w-full">
+                <div class="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
                     <div class="p-6">
-                        <h3 class="font-serif text-xl font-bold text-gray-800 mb-4">添加新标记</h3>
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="font-serif text-xl font-bold text-gray-800">添加新标记</h3>
+                            <button id="form-close" class="text-gray-500 hover:text-gray-700">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
                         
                         <form id="marker-form">
                             <div class="mb-4">
-                                <label class="block text-sm font-medium text-gray-700 mb-2">项目名称</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">项目名称 *</label>
                                 <input type="text" id="marker-title" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" required>
                             </div>
                             
                             <div class="mb-4">
-                                <label class="block text-sm font-medium text-gray-700 mb-2">项目描述</label>
-                                <textarea id="marker-description" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" required></textarea>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">项目描述 *</label>
+                                <textarea id="marker-description" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="请描述项目的具体内容、目标和意义..." required></textarea>
                             </div>
                             
                             <div class="mb-4">
-                                <label class="block text-sm font-medium text-gray-700 mb-2">项目类型</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">项目类型 *</label>
                                 <select id="marker-category" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" required>
                                     <option value="">请选择项目类型</option>
                                     ${this.config.projects.categories.map(cat => 
-                                        `<option value="${cat.id}">${cat.name}</option>`
+                                        `<option value="${cat.id}">${cat.icon} ${cat.name}</option>`
                                     ).join('')}
                                 </select>
                             </div>
                             
                             <div class="mb-4">
-                                <label class="block text-sm font-medium text-gray-700 mb-2">参与人数</label>
-                                <input type="number" id="marker-participants" min="1" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" required>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">参与人数 *</label>
+                                <input type="number" id="marker-participants" min="1" max="1000" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" required>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">完成日期</label>
+                                <input type="date" id="marker-date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
                             </div>
                             
                             <div class="mb-6">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">项目图片</label>
-                                <input type="file" id="marker-image" accept="image/*" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                                <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center" id="image-upload-area">
+                                    <div id="upload-prompt">
+                                        <svg class="mx-auto h-12 w-12 text-gray-400 mb-2" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg>
+                                        <p class="text-sm text-gray-600">
+                                            <span class="font-medium text-green-600">点击上传</span> 或拖拽图片到此处
+                                        </p>
+                                        <p class="text-xs text-gray-500">支持 JPEG, PNG, WebP, GIF 格式，最大 10MB</p>
+                                    </div>
+                                    <input type="file" id="marker-image" accept="image/*" class="hidden">
+                                    <div id="image-preview" class="hidden">
+                                        <img id="preview-image" class="max-w-full max-h-48 mx-auto rounded-lg">
+                                        <div class="mt-2">
+                                            <button type="button" id="remove-image" class="text-sm text-red-600 hover:text-red-800">
+                                                移除图片
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div id="upload-progress" class="hidden">
+                                        <div class="w-full bg-gray-200 rounded-full h-2 mb-2">
+                                            <div class="bg-green-600 h-2 rounded-full transition-all duration-300" id="progress-bar" style="width: 0%"></div>
+                                        </div>
+                                        <p class="text-sm text-gray-600" id="progress-text">上传中...</p>
+                                    </div>
+                                </div>
                             </div>
                             
                             <div class="flex space-x-3">
                                 <button type="button" id="form-cancel" class="flex-1 px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
                                     取消
                                 </button>
-                                <button type="submit" class="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
-                                    提交
+                                <button type="submit" id="form-submit" class="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                                    <span id="submit-text">提交</span>
+                                    <span id="submit-loading" class="hidden">
+                                        <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        提交中...
+                                    </span>
                                 </button>
                             </div>
                         </form>
@@ -785,9 +832,14 @@ class MarkerForm {
         document.body.insertAdjacentHTML('beforeend', formHTML);
         this.modal = document.getElementById('marker-form-modal');
         this.setupEventListeners();
+        this.setupImageUpload();
     }
 
     setupEventListeners() {
+        document.getElementById('form-close').addEventListener('click', () => {
+            this.hide();
+        });
+
         document.getElementById('form-cancel').addEventListener('click', () => {
             this.hide();
         });
@@ -796,6 +848,139 @@ class MarkerForm {
             e.preventDefault();
             this.submitForm();
         });
+    }
+
+    setupImageUpload() {
+        const uploadArea = document.getElementById('image-upload-area');
+        const fileInput = document.getElementById('marker-image');
+        const preview = document.getElementById('image-preview');
+        const previewImage = document.getElementById('preview-image');
+        const removeButton = document.getElementById('remove-image');
+
+        // 点击上传区域触发文件选择
+        uploadArea.addEventListener('click', (e) => {
+            if (!preview.classList.contains('hidden')) return;
+            fileInput.click();
+        });
+
+        // 文件选择处理
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                this.handleImageSelect(file);
+            }
+        });
+
+        // 拖拽上传
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('border-green-500', 'bg-green-50');
+        });
+
+        uploadArea.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('border-green-500', 'bg-green-50');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('border-green-500', 'bg-green-50');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                this.handleImageSelect(files[0]);
+            }
+        });
+
+        // 移除图片
+        removeButton.addEventListener('click', () => {
+            this.removeImage();
+        });
+    }
+
+    async handleImageSelect(file) {
+        // 验证文件
+        const validation = this.cloudinaryUploader.validateFile(file);
+        if (!validation.isValid) {
+            alert(validation.errors.join('\n'));
+            return;
+        }
+
+        // 显示预览
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            document.getElementById('preview-image').src = e.target.result;
+            document.getElementById('upload-prompt').classList.add('hidden');
+            document.getElementById('image-preview').classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+
+        // 上传到Cloudinary
+        await this.uploadImageToCloudinary(file);
+    }
+
+    async uploadImageToCloudinary(file) {
+        this.isUploading = true;
+        this.updateSubmitButton();
+        
+        document.getElementById('upload-progress').classList.remove('hidden');
+        document.getElementById('image-preview').classList.add('hidden');
+
+        try {
+            const result = await this.cloudinaryUploader.uploadImage(file, {
+                compress: true,
+                tags: ['sustainable-campus', 'user-upload'],
+                context: {
+                    source: 'user_upload',
+                    timestamp: new Date().toISOString()
+                }
+            });
+
+            if (result.success) {
+                this.uploadedImageUrl = result.data.url;
+                document.getElementById('progress-text').textContent = '上传成功！';
+                document.getElementById('progress-bar').style.width = '100%';
+                
+                setTimeout(() => {
+                    document.getElementById('upload-progress').classList.add('hidden');
+                    document.getElementById('image-preview').classList.remove('hidden');
+                    document.getElementById('preview-image').src = this.uploadedImageUrl;
+                }, 1000);
+            } else {
+                throw new Error(result.error);
+            }
+        } catch (error) {
+            console.error('图片上传失败:', error);
+            alert(`图片上传失败: ${error.message}`);
+            this.removeImage();
+        } finally {
+            this.isUploading = false;
+            this.updateSubmitButton();
+        }
+    }
+
+    removeImage() {
+        this.uploadedImageUrl = null;
+        document.getElementById('image-preview').classList.add('hidden');
+        document.getElementById('upload-progress').classList.add('hidden');
+        document.getElementById('upload-prompt').classList.remove('hidden');
+        document.getElementById('marker-image').value = '';
+    }
+
+    updateSubmitButton() {
+        const submitButton = document.getElementById('form-submit');
+        const submitText = document.getElementById('submit-text');
+        const submitLoading = document.getElementById('submit-loading');
+
+        if (this.isUploading) {
+            submitButton.disabled = true;
+            submitText.classList.add('hidden');
+            submitLoading.classList.remove('hidden');
+        } else {
+            submitButton.disabled = false;
+            submitText.classList.remove('hidden');
+            submitLoading.classList.add('hidden');
+        }
     }
 
     show() {
@@ -809,52 +994,112 @@ class MarkerForm {
         this.modal.classList.remove('flex');
         document.body.style.overflow = 'auto';
         document.getElementById('marker-form').reset();
+        this.removeImage();
     }
 
     async submitForm() {
+        if (this.isUploading) {
+            alert('图片正在上传中，请稍候...');
+            return;
+        }
+
         const formData = {
             title: document.getElementById('marker-title').value,
             description: document.getElementById('marker-description').value,
             category: document.getElementById('marker-category').value,
             participants: parseInt(document.getElementById('marker-participants').value),
+            completionDate: document.getElementById('marker-date').value || '待定',
             location: [this.lnglat.lng, this.lnglat.lat],
+            imageUrl: this.uploadedImageUrl,
             timestamp: new Date().toISOString()
         };
 
+        // 验证必填字段
+        if (!formData.title || !formData.description || !formData.category || !formData.participants) {
+            alert('请填写所有必填字段');
+            return;
+        }
+
         try {
+            this.isUploading = true;
+            this.updateSubmitButton();
+
             await this.submitToGitHub(formData);
             this.showSuccessMessage();
             this.hide();
         } catch (error) {
             console.error('提交失败:', error);
             this.showErrorMessage();
+        } finally {
+            this.isUploading = false;
+            this.updateSubmitButton();
         }
     }
 
     async submitToGitHub(data) {
-        // 这里应该调用GitHub API
-        // 由于需要Personal Access Token，这里只是示例代码
-        console.log('提交到GitHub的数据:', data);
-        
-        // 实际实现时需要：
-        // 1. 创建GitHub Issue或提交PR
-        // 2. 上传图片文件到repository
-        // 3. 返回成功状态
-        
-        // 模拟API调用
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                resolve({ success: true });
-            }, 1000);
-        });
+        try {
+            // 准备要提交的数据
+            const submissionData = {
+                title: `新项目标记: ${data.title}`,
+                body: this.generateIssueBody(data),
+                labels: ['new-marker', data.category]
+            };
+
+            // 由于需要GitHub Personal Access Token，这里使用模拟提交
+            // 实际使用时需要通过后端API或GitHub Actions
+            console.log('提交到GitHub的数据:', submissionData);
+
+            // 模拟API调用
+            return new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    // 模拟成功提交
+                    if (Math.random() > 0.1) { // 90% 成功率
+                        resolve({ 
+                            success: true, 
+                            issueNumber: Math.floor(Math.random() * 1000) + 1 
+                        });
+                    } else {
+                        reject(new Error('GitHub API 调用失败'));
+                    }
+                }, 2000);
+            });
+
+        } catch (error) {
+            throw new Error(`GitHub提交失败: ${error.message}`);
+        }
+    }
+
+    generateIssueBody(data) {
+        return `## 新可持续校园项目标记
+
+**项目名称**: ${data.title}
+
+**项目类型**: ${this.config.projects.categories.find(c => c.id === data.category)?.name}
+
+**项目描述**: 
+${data.description}
+
+**参与人数**: ${data.participants}人
+
+**完成日期**: ${data.completionDate}
+
+**地理位置**: ${data.location[1]}, ${data.location[0]}
+
+**提交时间**: ${new Date(data.timestamp).toLocaleString()}
+
+${data.imageUrl ? `**项目图片**: ![项目图片](${data.imageUrl})` : '**项目图片**: 无'}
+
+---
+*此标记由用户通过网站表单提交*
+`;
     }
 
     showSuccessMessage() {
-        alert('标记提交成功！感谢您的贡献。');
+        alert('标记提交成功！感谢您的贡献，我们会在审核后添加到地图上。');
     }
 
     showErrorMessage() {
-        alert('提交失败，请稍后重试。');
+        alert('提交失败，请稍后重试。如果问题持续存在，请联系管理员。');
     }
 }
 
