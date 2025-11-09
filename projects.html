@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>项目故事 - 北京大学可持续校园实践课程</title>
+    <meta name="description" content="探索北京大学可持续校园实践课程的创新项目故事">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=Noto+Serif+SC:wght@400;500;700&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
+    
+    <!-- 核心库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/js/splide.min.js"></script>
+    
+    <!-- Splide CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/css/splide.min.css">
+    
+    <!-- 配置文件 -->
+    <script src="config.js"></script>
+    
+    <style>
+        :root {
+            --primary-green: #1B4332;
+            --accent-gold: #D4AF37;
+            --text-dark: #2D3748;
+            --bg-light: #F8F9FA;
+        }
+        
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+        }
+        
+        .font-serif {
+            font-family: 'Noto Serif SC', serif;
+        }
+        
+        .font-display {
+            font-family: 'ZCOOL KuaiLe', cursive;
+        }
+        
+        .nav-link {
+            position: relative;
+            transition: color 0.3s ease;
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--accent-gold);
+            transition: width 0.3s ease;
+        }
+        
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        
+        .project-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .project-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 40px rgba(27, 67, 50, 0.15);
+        }
+        
+        .category-filter {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .category-filter.active {
+            background-color: var(--primary-green);
+            color: white;
+            transform: scale(1.05);
+        }
+        
+        .category-filter:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .scroll-reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s ease;
+        }
+        
+        .scroll-reveal.revealed {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .hero-section {
+            background: linear-gradient(135deg, rgba(27, 67, 50, 0.9), rgba(27, 67, 50, 0.7)), url('resources/hero-bg.jpg');
+            background-size: cover;
+            background-position: center;
+        }
+        
+        .image-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        
+        .gallery-image {
+            aspect-ratio: 16/9;
+            object-fit: cover;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        
+        .gallery-image:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-sm shadow-sm z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-3">
+                    <img src="resources/logo.png" alt="Logo" class="h-10 w-10">
+                    <span class="font-serif font-bold text-lg text-gray-800">可持续校园实践</span>
+                </div>
+                
+                <div class="hidden md:flex space-x-8">
+                    <a href="index.html" class="nav-link text-gray-700 hover:text-green-800 font-medium">主页</a>
+                    <a href="projects.html" class="nav-link text-green-800 font-medium">项目故事</a>
+                    <a href="tour.html" class="nav-link text-gray-700 hover:text-green-800 font-medium">Tour</a>
+                    <a href="about.html" class="nav-link text-gray-700 hover:text-green-800 font-medium">关于我们</a>
+                </div>
+                
+                <div class="md:hidden">
+                    <button id="mobile-menu-btn" class="text-gray-700 hover:text-green-800">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 移动端菜单 -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t">
+            <div class="px-2 pt-2 pb-3 space-y-1">
+                <a href="index.html" class="block px-3 py-2 text-gray-700 hover:text-green-800">主页</a>
+                <a href="projects.html" class="block px-3 py-2 text-green-800 font-medium">项目故事</a>
+                <a href="tour.html" class="block px-3 py-2 text-gray-700 hover:text-green-800">Tour</a>
+                <a href="about.html" class="block px-3 py-2 text-gray-700 hover:text-green-800">关于我们</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 页面标题区域 -->
+    <section class="hero-section pt-24 pb-16 text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h1 class="font-serif text-4xl md:text-5xl font-bold mb-6">项目故事</h1>
+            <p class="text-xl md:text-2xl max-w-3xl mx-auto opacity-90">
+                每一个项目都是一个创新的故事，每一个故事都承载着我们对可持续未来的美好愿景
+            </p>
+        </div>
+    </section>
+
+    <!-- 项目分类筛选 -->
+    <section class="py-12 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-8 scroll-reveal">
+                <h2 class="font-serif text-2xl md:text-3xl font-bold text-gray-800 mb-4">探索项目分类</h2>
+                <p class="text-lg text-gray-600">点击下方分类，查看相关项目详情</p>
+            </div>
+            
+            <div class="flex flex-wrap justify-center gap-4 mb-12 scroll-reveal" id="category-filters">
+                <button class="category-filter active px-6 py-3 rounded-full border-2 border-green-800 text-green-800 font-medium" data-category="all">
+                    全部项目
+                </button>
+                <!-- 其他分类按钮将通过JavaScript动态生成 -->
+            </div>
+        </div>
+    </section>
+
+    <!-- 项目展示网格 -->
+    <section class="py-12 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12 scroll-reveal">
+                <h2 class="font-serif text-2xl md:text-3xl font-bold text-gray-800 mb-4">项目展示</h2>
+                <p class="text-lg text-gray-600">点击项目卡片查看详细信息</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="projects-grid">
+                <!-- 项目卡片将通过JavaScript动态生成 -->
+            </div>
+            
+            <!-- 无结果提示 -->
+            <div id="no-results" class="hidden text-center py-12">
+                <div class="text-6xl mb-4">🔍</div>
+                <h3 class="text-xl font-semibold text-gray-600 mb-2">未找到相关项目</h3>
+                <p class="text-gray-500">请尝试选择其他分类</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 项目统计 -->
+    <section class="py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12 scroll-reveal">
+                <h2 class="font-serif text-2xl md:text-3xl font-bold text-gray-800 mb-4">项目影响力</h2>
+                <p class="text-lg text-gray-600">数据见证我们的环保实践成果</p>
+            </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+                <div class="text-center scroll-reveal">
+                    <div class="text-4xl font-bold text-green-600 mb-2" id="total-projects">6</div>
+                    <div class="text-gray-600 font-medium">创新项目</div>
+                </div>
+                <div class="text-center scroll-reveal">
+                    <div class="text-4xl font-bold text-blue-600 mb-2" id="total-participants">185</div>
+                    <div class="text-gray-600 font-medium">参与师生</div>
+                </div>
+                <div class="text-center scroll-reveal">
+                    <div class="text-4xl font-bold text-yellow-600 mb-2">2.5</div>
+                    <div class="text-gray-600 font-medium">减少CO₂(吨)</div>
+                </div>
+                <div class="text-center scroll-reveal">
+                    <div class="text-4xl font-bold text-purple-600 mb-2">40%</div>
+                    <div class="text-gray-600 font-medium">减少浪费</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer class="bg-gray-800 text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center">
+                <div class="flex items-center justify-center space-x-3 mb-4">
+                    <img src="resources/logo.png" alt="Logo" class="h-8 w-8">
+                    <span class="font-serif font-bold text-lg">北京大学可持续校园实践课程</span>
+                </div>
+                
+                <p class="text-gray-400 mb-4">
+                    © 2025 北京大学可持续校园实践课程团队. 保留所有权利.
+                </p>
+                
+                <p class="text-sm text-gray-500">
+                    地址：北京市海淀区颐和园路5号北京大学环境科学学院
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 项目详情模态框 -->
+    <div id="project-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex justify-between items-start mb-6">
+                    <h2 id="modal-title" class="font-serif text-2xl font-bold text-gray-800"></h2>
+                    <button id="modal-close" class="text-gray-500 hover:text-gray-700">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div id="modal-content">
+                    <!-- 内容将通过JavaScript动态填充 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 图片查看器模态框 -->
+    <div id="image-viewer-modal" class="fixed inset-0 bg-black bg-opacity-90 z-50 hidden items-center justify-center p-4">
+        <div class="relative max-w-4xl max-h-full">
+            <button id="image-viewer-close" class="absolute top-4 right-4 text-white hover:text-gray-300 z-10">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+            <img id="image-viewer-img" src="" alt="" class="max-w-full max-h-full object-contain">
+        </div>
+    </div>
+
+    <!-- 主要JavaScript -->
+    <script src="main.js"></script>
+    
+    <script>
+        // 项目页面特定功能
+        class ProjectsPage {
+            constructor() {
+                this.config = CONFIG;
+                this.currentFilter = 'all';
+                this.init();
+            }
+
+            init() {
+                this.createCategoryFilters();
+                this.renderProjects();
+                this.setupEventListeners();
+                this.initScrollReveal();
+            }
+
+            createCategoryFilters() {
+                const container = document.getElementById('category-filters');
+                const categories = this.config.projects.categories;
+
+                categories.forEach(category => {
+                    const button = document.createElement('button');
+                    button.className = 'category-filter px-6 py-3 rounded-full border-2 border-gray-300 text-gray-700 font-medium';
+                    button.textContent = category.name;
+                    button.dataset.category = category.id;
+                    
+                    button.innerHTML = `
+                        <span class="mr-2">${category.icon}</span>
+                        ${category.name}
+                    `;
+                    
+                    container.appendChild(button);
+                });
+            }
+
+            renderProjects() {
+                const grid = document.getElementById('projects-grid');
+                const projects = this.config.projects.items;
+                const filteredProjects = this.currentFilter === 'all' 
+                    ? projects 
+                    : projects.filter(p => p.category === this.currentFilter);
+
+                grid.innerHTML = '';
+
+                if (filteredProjects.length === 0) {
+                    document.getElementById('no-results').classList.remove('hidden');
+                    return;
+                }
+
+                document.getElementById('no-results').classList.add('hidden');
+
+                filteredProjects.forEach(project => {
+                    const card = this.createProjectCard(project);
+                    grid.appendChild(card);
+                });
+
+                // 添加滚动显示动画
+                setTimeout(() => {
+                    this.initScrollReveal();
+                }, 100);
+            }
+
+            createProjectCard(project) {
+                const category = this.config.projects.categories.find(c => c.id === project.category);
+                const div = document.createElement('div');
+                div.className = 'project-card scroll-reveal';
+                
+                div.innerHTML = `
+                    <div class="aspect-w-16 aspect-h-9 bg-gray-200">
+                        <img src="${project.images[0]}" alt="${project.title}" class="w-full h-48 object-cover">
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center mb-3">
+                            <span class="text-2xl mr-2">${category.icon}</span>
+                            <span class="text-sm font-medium px-3 py-1 rounded-full" style="background-color: ${category.color}20; color: ${category.color};">
+                                ${category.name}
+                            </span>
+                        </div>
+                        <h3 class="font-serif text-xl font-bold text-gray-800 mb-3">${project.title}</h3>
+                        <p class="text-gray-600 text-sm leading-relaxed mb-4 line-clamp-3">${project.description}</p>
+                        <div class="flex justify-between items-center text-sm text-gray-500 mb-4">
+                            <span>📅 ${project.completionDate}</span>
+                            <span>👥 ${project.participants}人参与</span>
+                        </div>
+                        <div class="text-xs text-green-600 font-medium">
+                            💡 ${project.impact}
+                        </div>
+                    </div>
+                `;
+
+                div.addEventListener('click', () => {
+                    this.openProjectModal(project);
+                });
+
+                return div;
+            }
+
+            setupEventListeners() {
+                // 分类筛选按钮
+                document.getElementById('category-filters').addEventListener('click', (e) => {
+                    if (e.target.classList.contains('category-filter')) {
+                        this.setActiveFilter(e.target.dataset.category);
+                    }
+                });
+
+                // 模态框关闭
+                document.getElementById('modal-close').addEventListener('click', () => {
+                    this.closeProjectModal();
+                });
+
+                document.getElementById('project-modal').addEventListener('click', (e) => {
+                    if (e.target.id === 'project-modal') {
+                        this.closeProjectModal();
+                    }
+                });
+
+                // 图片查看器
+                document.getElementById('image-viewer-close').addEventListener('click', () => {
+                    this.closeImageViewer();
+                });
+
+                document.getElementById('image-viewer-modal').addEventListener('click', (e) => {
+                    if (e.target.id === 'image-viewer-modal') {
+                        this.closeImageViewer();
+                    }
+                });
+            }
+
+            setActiveFilter(category) {
+                this.currentFilter = category;
+                
+                // 更新按钮状态
+                document.querySelectorAll('.category-filter').forEach(btn => {
+                    btn.classList.remove('active');
+                    if (btn.dataset.category === category) {
+                        btn.classList.add('active');
+                    }
+                });
+
+                // 重新渲染项目
+                this.renderProjects();
+            }
+
+            openProjectModal(project) {
+                const modal = document.getElementById('project-modal');
+                const title = document.getElementById('modal-title');
+                const content = document.getElementById('modal-content');
+
+                title.textContent = project.title;
+                
+                const category = this.config.projects.categories.find(c => c.id === project.category);
+                
+                content.innerHTML = `
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div>
+                            <img src="${project.images[0]}" alt="${project.title}" class="w-full h-64 object-cover rounded-lg mb-4 cursor-pointer" onclick="projectsPage.openImageViewer('${project.images[0]}')">
+                            
+                            <div class="flex items-center mb-4">
+                                <span class="text-2xl mr-2">${category.icon}</span>
+                                <span class="px-3 py-1 rounded-full text-sm font-medium" style="background-color: ${category.color}20; color: ${category.color};">
+                                    ${category.name}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h3 class="font-serif text-xl font-bold text-gray-800 mb-4">项目详情</h3>
+                            
+                            <div class="space-y-4 mb-6">
+                                <div class="flex items-center">
+                                    <span class="w-20 text-gray-500">状态:</span>
+                                    <span class="font-medium text-green-600">已完成</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <span class="w-20 text-gray-500">时间:</span>
+                                    <span class="font-medium">${project.completionDate}</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <span class="w-20 text-gray-500">参与:</span>
+                                    <span class="font-medium">${project.participants}人</span>
+                                </div>
+                                <div class="flex items-start">
+                                    <span class="w-20 text-gray-500">影响:</span>
+                                    <span class="font-medium text-green-600 flex-1">${project.impact}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-6">
+                                <h4 class="font-semibold text-gray-800 mb-2">项目描述</h4>
+                                <p class="text-gray-600 leading-relaxed">${project.description}</p>
+                            </div>
+                            
+                            ${project.wechatUrl ? `
+                                <div class="mt-6">
+                                    <a href="${project.wechatUrl}" target="_blank" class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                                        查看微信公众号推送
+                                        <svg class="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                        </svg>
+                                    </a>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                document.body.style.overflow = 'hidden';
+            }
+
+            closeProjectModal() {
+                const modal = document.getElementById('project-modal');
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                document.body.style.overflow = 'auto';
+            }
+
+            openImageViewer(imageSrc) {
+                const modal = document.getElementById('image-viewer-modal');
+                const img = document.getElementById('image-viewer-img');
+                
+                img.src = imageSrc;
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                document.body.style.overflow = 'hidden';
+            }
+
+            closeImageViewer() {
+                const modal = document.getElementById('image-viewer-modal');
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                document.body.style.overflow = 'auto';
+            }
+
+            initScrollReveal() {
+                const observerOptions = {
+                    threshold: 0.1,
+                    rootMargin: '0px 0px -50px 0px'
+                };
+
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('revealed');
+                        }
+                    });
+                }, observerOptions);
+
+                document.querySelectorAll('.scroll-reveal').forEach(el => {
+                    observer.observe(el);
+                });
+            }
+        }
+
+        // 页面初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            window.projectsPage = new ProjectsPage();
+        });
+    </script>
+</body>
+</html>

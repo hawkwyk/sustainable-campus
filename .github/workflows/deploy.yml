@@ -1,0 +1,90 @@
+# GitHub Pages 自动部署工作流
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+# 设置权限
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 允许并发部署
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  # 构建作业
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      # 安装依赖（如果需要）
+      - name: Install dependencies
+        run: |
+          # 如果需要安装任何依赖，可以在这里添加
+          echo "No dependencies to install for static site"
+
+      # 构建步骤（如果需要）
+      - name: Build
+        run: |
+          # 对于静态网站，这里可以添加构建步骤
+          echo "Building static site..."
+          
+          # 创建构建目录结构
+          mkdir -p _site
+          
+          # 复制所有文件到构建目录
+          cp -r * _site/ 2>/dev/null || true
+          
+          # 确保配置文件被复制
+          cp config.js _site/ 2>/dev/null || true
+          cp -r resources _site/ 2>/dev/null || true
+
+      # 上传构建产物
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./_site
+
+  # 部署作业
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  # 通知作业（可选）
+  notify:
+    runs-on: ubuntu-latest
+    needs: [build, deploy]
+    if: always()
+    steps:
+      - name: Notify deployment status
+        run: |
+          if [ "${{ needs.deploy.result }}" == "success" ]; then
+            echo "✅ 部署成功！网站已上线：${{ needs.deploy.outputs.page_url }}"
+          else
+            echo "❌ 部署失败，请检查工作流日志"
+          fi

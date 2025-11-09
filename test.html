@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>功能测试 - 北京大学可持续校园实践课程</title>
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-item {
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .success {
+            background: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        .warning {
+            background: #fff3cd;
+            border-color: #ffeaa7;
+            color: #856404;
+        }
+        .nav-test {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .nav-test a {
+            padding: 8px 16px;
+            background: #1B4332;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+        .nav-test a:hover {
+            background: #2d5a3d;
+        }
+    </style>
+</head>
+<body>
+    <h1>北京大学可持续校园实践课程网站 - 功能测试</h1>
+    
+    <div class="test-section">
+        <h2>导航测试</h2>
+        <div class="nav-test">
+            <a href="index.html" target="_blank">主页</a>
+            <a href="projects.html" target="_blank">项目故事</a>
+            <a href="tour.html" target="_blank">校园导览</a>
+            <a href="about.html" target="_blank">关于我们</a>
+        </div>
+        <p>点击上方链接测试各页面是否正常加载</p>
+    </div>
+    
+    <div class="test-section">
+        <h2>文件存在性检查</h2>
+        <div id="file-check"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>配置检查</h2>
+        <div id="config-check"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>外部资源检查</h2>
+        <div id="resource-check"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>JavaScript功能测试</h2>
+        <button onclick="testJavaScript()">运行JavaScript测试</button>
+        <div id="js-test-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>部署说明</h2>
+        <h3>GitHub Pages部署</h3>
+        <ol>
+            <li>将代码推送到GitHub仓库</li>
+            <li>在仓库Settings → Pages中启用GitHub Pages</li>
+            <li>选择Source为"GitHub Actions"</li>
+            <li>推送代码到main分支将自动部署</li>
+        </ol>
+        
+        <h3>本地测试</h3>
+        <ol>
+            <li>使用Python: <code>python -m http.server 8000</code></li>
+            <li>使用Node.js: <code>npx serve .</code></li>
+            <li>访问 http://localhost:8000</li>
+        </ol>
+    </div>
+
+    <script>
+        // 文件存在性检查
+        const requiredFiles = [
+            'index.html',
+            'projects.html', 
+            'tour.html',
+            'about.html',
+            'main.js',
+            'config.js',
+            'resources/logo.png',
+            'resources/hero-bg.jpg'
+        ];
+        
+        const fileCheckDiv = document.getElementById('file-check');
+        requiredFiles.forEach(file => {
+            const div = document.createElement('div');
+            div.className = 'test-item';
+            
+            // 简单的存在性检查（实际部署时需要服务器支持）
+            fetch(file)
+                .then(response => {
+                    if (response.ok) {
+                        div.className += ' success';
+                        div.innerHTML = `✅ ${file} - 文件存在`;
+                    } else {
+                        div.className += ' error';
+                        div.innerHTML = `❌ ${file} - 文件不存在 (${response.status})`;
+                    }
+                })
+                .catch(error => {
+                    div.className += ' warning';
+                    div.innerHTML = `⚠️ ${file} - 无法检查 (${error.message})`;
+                });
+            
+            fileCheckDiv.appendChild(div);
+        });
+        
+        // 配置检查
+        try {
+            if (typeof CONFIG !== 'undefined') {
+                const configDiv = document.getElementById('config-check');
+                configDiv.innerHTML = `
+                    <div class="test-item success">✅ config.js 已正确加载</div>
+                    <div class="test-item success">✅ 网站标题: ${CONFIG.site.title}</div>
+                    <div class="test-item success">✅ 项目数量: ${CONFIG.projects.items.length}</div>
+                    <div class="test-item success">✅ 团队成员: ${CONFIG.team.length}人</div>
+                `;
+            }
+        } catch (error) {
+            document.getElementById('config-check').innerHTML = `
+                <div class="test-item error">❌ config.js 加载失败: ${error.message}</div>
+            `;
+        }
+        
+        // 外部资源检查
+        const externalResources = [
+            'https://cdn.tailwindcss.com',
+            'https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js',
+            'https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js',
+            'https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/js/splide.min.js',
+            'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js'
+        ];
+        
+        const resourceDiv = document.getElementById('resource-check');
+        externalResources.forEach(resource => {
+            const div = document.createElement('div');
+            div.className = 'test-item';
+            
+            // 检查外部资源是否可用
+            const script = document.createElement('script');
+            script.src = resource;
+            script.onload = () => {
+                div.className += ' success';
+                div.innerHTML = `✅ ${resource.split('/')[2]} - 加载成功`;
+            };
+            script.onerror = () => {
+                div.className += ' error';
+                div.innerHTML = `❌ ${resource.split('/')[2]} - 加载失败`;
+            };
+            document.head.appendChild(script);
+            
+            resourceDiv.appendChild(div);
+        });
+        
+        // JavaScript功能测试
+        function testJavaScript() {
+            const resultDiv = document.getElementById('js-test-result');
+            resultDiv.innerHTML = '';
+            
+            try {
+                // 测试基础功能
+                const tests = [
+                    { name: 'Anime.js', test: () => typeof anime !== 'undefined' },
+                    { name: 'ECharts', test: () => typeof echarts !== 'undefined' },
+                    { name: 'Splide', test: () => typeof Splide !== 'undefined' },
+                    { name: 'p5.js', test: () => typeof p5 !== 'undefined' }
+                ];
+                
+                tests.forEach(test => {
+                    const div = document.createElement('div');
+                    div.className = 'test-item';
+                    
+                    if (test.test()) {
+                        div.className += ' success';
+                        div.innerHTML = `✅ ${test.name} - 功能正常`;
+                    } else {
+                        div.className += ' error';
+                        div.innerHTML = `❌ ${test.name} - 功能异常`;
+                    }
+                    
+                    resultDiv.appendChild(div);
+                });
+                
+                // 测试自定义类
+                if (typeof SustainableCampusApp !== 'undefined') {
+                    const div = document.createElement('div');
+                    div.className = 'test-item success';
+                    div.innerHTML = '✅ SustainableCampusApp 类已定义';
+                    resultDiv.appendChild(div);
+                }
+                
+            } catch (error) {
+                const div = document.createElement('div');
+                div.className = 'test-item error';
+                div.innerHTML = `❌ JavaScript测试失败: ${error.message}`;
+                resultDiv.appendChild(div);
+            }
+        }
+        
+        // 页面加载完成后的检查
+        window.addEventListener('load', () => {
+            console.log('页面加载完成，所有功能测试就绪');
+        });
+    </script>
+</body>
+</html>
